@@ -62,7 +62,9 @@ def generate_results_threading():
     t1 = Thread(target = generate_results)
     t1.start()
 
+
 def upload_img():
+
     img_file.set(askopenfilename(filetypes=[("Image Files", "*.tif"), ("All Files", "*.*")]))
 
     if len(img_file.get()) == 0:
@@ -79,8 +81,10 @@ def upload_img():
     # UI message
     lbl_msg["text"] = 'Done uploading the image ...'
 
+
 def delete_img():
     files.pop()
+
 
 def select_out_folder():
     results_dir.set(askdirectory())

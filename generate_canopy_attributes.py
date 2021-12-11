@@ -63,7 +63,6 @@ def generate_results_threading():
     t1.start()
 
 def upload_img():
-    print("Will upload the image")
     img_file.set(askopenfilename(filetypes=[("Image Files", "*.tif"), ("All Files", "*.*")]))
 
     if len(img_file.get()) == 0:
@@ -72,8 +71,6 @@ def upload_img():
 
     # load the image
     files.append(img_file.get())
-    for f in files:
-        print(f'Uploaded the image: {f}')
 
     # UI message
     img_filename = os.path.splitext(os.path.basename(img_file.get()))[0][:] # get filename without extension
@@ -84,35 +81,24 @@ def upload_img():
 
 def delete_img():
     files.pop()
-    print('Loaded images:')
-    for f in files:
-        print(f' \t\t{f}')
 
 def select_out_folder():
-    print("Will upload the image")
     results_dir.set(askdirectory())
-    print(f'Will be saving the results to: {results_dir.get()}')
 
 def upload_shp():
-    print("Will upload the shp file")
     shp_file.set(askopenfilename(filetypes=[("All Files", "*.*")]))
 
     if len(shp_file.get()) == 0:
-        print("Error reading the SHP file")
         lbl_msg["text"] = 'Error reading the SHP file'
         return
 
     # UI message
     shp_filename = os.path.splitext(os.path.basename(shp_file.get()))[0][:] # get filename without extension
-    print(f'Uploaded the SHP file: {shp_filename}')
     lbl_msg["text"] = f'Uploaded the SHP file \n {shp_filename}'
 
 def upload_chm():
     chm_dir.set(askdirectory())
-    print(f'Selected the CHM folder as {chm_dir.get()}')
-
     chm_files = glob.glob(os.path.join(chm_dir.get(), '*.tif'))
-    print(f'The files read are: {chm_files}')
 
     # add processing options related to CHM (ch and cv) to the processing list
     if len(chm_files) and rd_btn_var.get() == 'RGB':
@@ -122,23 +108,17 @@ def upload_chm():
 
 # create and set the values of check boxes
 def set_processing_options():
-    print('Will set processing options')
-
     # clear the chk_box_pannel options
     for widgets in chk_box_pannel.winfo_children():
         widgets.destroy()
 
     if rd_btn_var.get() == 'RGB':
-        print('RGB options ...')
-
         # update the chk_box_pannel with rgb options
         for i in range(len(rgb_vis)):
             chk_box = tk.Checkbutton(chk_box_pannel, text = rgb_vis[i].upper(), variable = rgb_vi_chk_box_var[i])
             chk_box.grid(row = i + 1, column = 0, sticky = "w")
 
     if rd_btn_var.get() == 'MULTI':
-        print('MULTI options ...')
-
         # update the chk_box_pannel with multi options
         for i in range(len(multi_vis)):
             chk_box = tk.Checkbutton(chk_box_pannel, text = multi_vis[i].upper(), variable = multi_vi_chk_box_var[i])
@@ -149,7 +129,6 @@ def check_inputs(): #TODO : also check for the target options
         return True
 
     if(len(files) == 0 or len(results_dir.get()) == 0 or rd_btn_var.get() == 'x'):
-        print(f'len(files) is {len(files)} \nlen(out_dir.get()) is {len(results_dir.get())} \nrd_btn_var is {rd_btn_var.get()}')
         lbl_msg["text"] = "Upload image(s) \nSelect output folder\nSelect image type\nSelect target outputs ..."
         return False
 
@@ -157,38 +136,24 @@ def check_optional_inputs():
     return
 
 def generate_results():
-    # TODO: check which boxes are checked
-    #       for each checked box
-    #          create output folder for dat files
-    #          generate dat files
-    #          check if shp file is Upload
-    #              create folder for new shp file
-    #              generate new shp file
-
     if not check_inputs():
         return
-
-    print(f'img type is {rd_btn_var.get()}')
 
     # rgb processing
     if rd_btn_var.get() == 'RGB':
         vis_to_process = []
         for i in range(len(rgb_vis)):
             if rgb_vi_chk_box_var[i].get() != 0 and (rgb_vis[i] != 'ch' or rgb_vis[i] != 'cv'): #TODO: fix condition
-                print (f'The option: {rgb_vis[i]} was set to: {rgb_vi_chk_box_var[i].get()}')
                 vis_to_process.append(rgb_vis[i])
-                print(f'RGB VIs to process {vis_to_process}')
+
             if rgb_vi_chk_box_var[i].get() != 0 and rgb_vis[i] == 'ch':
-                print (f'The option: {rgb_vis[i]} was set to: {rgb_vi_chk_box_var[i].get()}')
-                print('Will process canopy height ... ...')
                 get_ch_boundary(epsg_val, shp_file.get(), chm_files, results_dir.get())
+
             if rgb_vi_chk_box_var[i].get() != 0 and rgb_vis[i] == 'cv':
-                print (f'The option: {rgb_vis[i]} was set to: {rgb_vi_chk_box_var[i].get()}')
-                print('Will process canopy volume ... ...')
                 get_cv_boundary(epsg_val, shp_file.get(), chm_files, results_dir.get())
 
         get_dat_for_vi(files, results_dir.get(), rd_btn_var.get(), vis_to_process)
-        print(f'Generated RGB dat files')
+
         lbl_msg["text"] = f'Generated RGB dat files'
 
     # multi processing
@@ -196,14 +161,11 @@ def generate_results():
         vis_to_process = []
         for i in range(len(multi_vis)):
             if multi_vi_chk_box_var[i].get() != 0:
-                print (f'The option: {multi_vis[i]} was set to: {multi_vi_chk_box_var[i].get()}')
                 vis_to_process.append(multi_vis[i])
         get_dat_for_vi(files, results_dir.get(), rd_btn_var.get(), vis_to_process)
-        print(f'Generated MULTI dat files')
         lbl_msg["text"] = f'Generated MULTI dat files'
 
     if len(shp_file.get()) != 0:
-        print(f'Will also process shapefile {shp_file.get()}')
         if epsg_var.get() == "13N":
             epsg_val = epsg_13
         elif epsg_var.get() == "14N":
@@ -214,7 +176,6 @@ def generate_results():
 
         # get_cc_boundary(epsg_val, shp_file.get(), results_dir.get())
         get_boundary_for_vi(epsg_val, shp_file.get(), results_dir.get(), vis_to_process)
-        print(f'Generated shapefile(s)')
         lbl_msg["text"] = f'Generated shapefile(s)'
 
     lbl_msg["text"] = f'Done processing selected \noptions ...'
